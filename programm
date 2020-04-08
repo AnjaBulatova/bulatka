@@ -1,0 +1,721 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Windows.Forms;
+
+namespace лр81
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        [Serializable]
+        class Kredit
+        {
+            public string fio;
+            public int summa;
+            public string vid;
+            public int srok;
+            public int nomer;
+
+            public string FIO
+            {
+                get { return fio; }
+                set { fio = value; }
+            }
+            public int Summa
+            {
+                get { return summa; }
+                set { summa = value; }
+            }
+            public int Nomer
+            {
+                get { return nomer; }
+                set { nomer = value; }
+            }
+            public string Vid
+            {
+                get { return vid; }
+                set { vid = value; }
+            }
+
+            public int Srok
+            {
+                get { return srok; }
+                set { srok = value; }
+            }
+            public Kredit(string f, int s, string v, int sr, int n)
+            {
+                FIO = f;
+                Summa = s;
+                Vid = v;
+                Srok = sr;
+                Nomer = n;
+            }
+            
+        }
+        private List<Kredit> spisok = new List<Kredit>();
+        
+
+        private void MakeBD (ref DataGridView dgv1, TextBox tb1, TextBox tb2, DomainUpDown dud1, NumericUpDown nud2, NumericUpDown nud1, ref List<Kredit> spisok)
+        {
+            string f;
+            int s;
+            string v;
+            int sr;
+            int n;
+            int i, j;
+
+            try
+            {
+                bool ok = true;
+                n = Convert.ToInt32(nud2.Value);
+                sr = Convert.ToInt32(nud1.Value);
+                v = Convert.ToString(dud1.Text);
+
+                if (dud1.Text == "Выберите вид кредита")
+                {
+                    MessageBox.Show("Вы не выбрали вид кредита", "Пропуск поля",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ok = false;
+                }
+
+                if (tb1.Text == "")
+                {
+                    MessageBox.Show("Вы не ввели ФИО", "Пропуск поля",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ok = false;
+                }
+
+                foreach (char ch in tb1.Text)
+                {
+                    if (!(char.IsLetter(ch) || ch == '.' || ch == ' ')) 
+                    {
+                        MessageBox.Show("Некорректно введены данные ФИО", "Ошибка в значениях",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ok = false;
+                    }
+                }
+
+                tb1.Text.Trim();
+                f = Convert.ToString(tb1.Text.Trim(' '));
+
+
+                if (tb2.Text == "")
+                {
+                    MessageBox.Show("Вы не ввели данные суммы", "Пропуск поля",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ok = false;
+                }
+
+                foreach (char ch in tb2.Text)
+                {
+                    if (!(char.IsDigit(ch)))
+                    {
+                        MessageBox.Show("Некорректно введены данные суммы", "Ошибка в значениях",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ok = false;
+                        break;
+                    }
+                }
+
+                tb2.Text.Trim();
+                s = Convert.ToInt32(tb2.Text.Trim(' '));
+
+                if (ok == true)
+                {
+                    Kredit person = new Kredit(f, s, v, sr, n);
+                    BinaryFormatter bf = new BinaryFormatter();
+                    using (FileStream f1 = new FileStream("kredit.dat", FileMode.OpenOrCreate))
+                    {
+                        bf.Serialize(f1, person);// сохранение объекта  в потоке f
+                    }
+
+                    using (FileStream f2 = new FileStream("kredit.dat", FileMode.Open))
+                    {
+                        Kredit persons = (Kredit)bf.Deserialize(f2);
+                        spisok.Insert(n - 1, persons);
+                    }
+                  
+                    dgv1.RowCount = dgv1.RowCount + 1;
+                    dgv1.RowCount = spisok.Count;
+
+                    for (i = 0; i < spisok.Count; i++)
+                    {
+                        for (j = 0; j < dgv1.ColumnCount; j++)
+                        {
+                            if (j == 0)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].nomer;
+                            }
+                            if (j == 1)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].FIO;
+                            }
+                            if (j == 2)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].Summa;
+                            }
+                            if (j == 3)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].Vid;
+                            }
+                            if (j == 4)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].Srok;
+                            }
+                        }
+                    }
+                }
+                tb1.Text = "";
+                tb2.Text = "";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка в создании карточки. Проверьте правильность введённых данных");
+            }
+        }
+
+        private void MakeBDNach(ref DataGridView dgv1, TextBox tb1, TextBox tb2, DomainUpDown dud1, NumericUpDown nud2, NumericUpDown nud1, ref List<Kredit> spisok)
+        {
+            string f;
+            int s;
+            string v;
+            int sr;
+            int n;
+            int i, j;
+
+            try
+            {
+                bool ok = true;
+                n = Convert.ToInt32(nud2.Value);
+                sr = Convert.ToInt32(nud1.Value);
+                v = Convert.ToString(dud1.Text);
+                if (dud1.Text == "Выберите вид кредита")
+                {
+                    MessageBox.Show("Вы не выбрали вид кредита", "Пропуск поля",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ok = false;
+                }
+
+                if (tb1.Text == "")
+                {
+                    MessageBox.Show("Вы не ввели ФИО", "Пропуск поля",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ok = false;
+                }
+
+                foreach (char ch in tb1.Text)
+                {
+                    if (!(char.IsLetter(ch) || ch == '.' || ch == ' '))
+                    {
+                        MessageBox.Show("Некорректно введены данные ФИО", "Ошибка в значениях",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ok = false;
+                    }
+                }
+
+                tb1.Text.Trim();
+                f = Convert.ToString(tb1.Text.Trim(' '));
+
+
+                if (tb2.Text == "")
+                {
+                    MessageBox.Show("Вы не ввели данные суммы", "Пропуск поля",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ok = false;
+                }
+
+                foreach (char ch in tb2.Text)
+                {
+                    if (!(char.IsDigit(ch)))
+                    {
+                        MessageBox.Show("Некорректно введены данные суммы", "Ошибка в значениях",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ok = false;
+                    }
+                }
+
+                tb2.Text.Trim();
+                s = Convert.ToInt32(tb2.Text.Trim(' '));
+
+                if (ok == true)
+                {
+                    Kredit person = new Kredit(f, s, v, sr, n);
+                    BinaryFormatter bf = new BinaryFormatter();
+                    using (FileStream f1 = new FileStream("kredit.dat", FileMode.OpenOrCreate))
+                    {
+                        bf.Serialize(f1, person);// сохранение объекта  в потоке f
+                    }
+
+                    using (FileStream f2 = new FileStream("kredit.dat", FileMode.Open))
+                    {
+                        Kredit persons = (Kredit)bf.Deserialize(f2);
+                        spisok.Insert(0, persons);
+                    }
+                    dgv1.RowCount = dgv1.RowCount + 1;
+                    dgv1.RowCount = spisok.Count;
+
+                    for (i = 0; i < spisok.Count; i++)
+                    {
+                        for (j = 0; j < dgv1.ColumnCount; j++)
+                        {
+                            if (j == 0)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].nomer;
+                            }
+                            if (j == 1)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].FIO;
+                            }
+                            if (j == 2)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].Summa;
+                            }
+                            if (j == 3)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].Vid;
+                            }
+                            if (j == 4)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].Srok;
+                            }
+
+                        }
+                    }
+                }
+                tb1.Text = "";
+                tb2.Text = "";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка в создании карточки. Проверьте правильность введённых данных");
+            }
+        }
+
+        private void MakeBDKon(ref DataGridView dgv1, TextBox tb1, TextBox tb2, DomainUpDown dud1, NumericUpDown nud2, NumericUpDown nud1, ref List<Kredit> spisok)
+        {
+            string f;
+            int s;
+            string v;
+            int sr;
+            int n;
+            int i, j;
+            
+            try
+            {
+                bool ok = true;
+                n = Convert.ToInt32(nud2.Value);
+                sr = Convert.ToInt32(nud1.Value);
+                v = Convert.ToString(dud1.Text);
+
+                if (dud1.Text == "Выберите вид кредита")
+                {
+                    MessageBox.Show("Вы не выбрали вид кредита", "Пропуск поля",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ok = false;
+                }
+
+                if (tb1.Text == "")
+                {
+                    MessageBox.Show("Вы не ввели ФИО", "Пропуск поля",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ok = false;
+                }
+
+                foreach (char ch in tb1.Text)
+                {
+                    if (!(char.IsLetter(ch) || ch == '.' || ch == ' '))
+                    {
+                        MessageBox.Show("Некорректно введены данные ФИО", "Ошибка в значениях",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ok = false;
+                        break;
+                    }
+                }
+
+                tb1.Text.Trim();
+                f = Convert.ToString(tb1.Text.Trim(' '));
+
+
+                if (tb2.Text == "")
+                {
+                    MessageBox.Show("Вы не ввели данные суммы", "Пропуск поля",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ok = false;
+                }
+
+                foreach (char ch in tb2.Text)
+                {
+                    if (!(char.IsDigit(ch)))
+                    {
+                        MessageBox.Show("Некорректно введены данные суммы", "Ошибка в значениях",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ok = false;
+                        break;
+                    }
+                }
+
+                
+                tb2.Text.Trim();
+                s = Convert.ToInt32(tb2.Text.Trim(' '));
+
+                if (ok == true) 
+                {
+                    Kredit person = new Kredit(f, s, v, sr, n);
+                    BinaryFormatter bf = new BinaryFormatter();
+                    using (FileStream f1 = new FileStream("kredit.dat", FileMode.OpenOrCreate))
+                    {
+                        bf.Serialize(f1, person);// сохранение объекта  в потоке f
+                    }
+
+                    using (FileStream f2 = new FileStream("kredit.dat", FileMode.Open))
+                    {
+                        Kredit persons = (Kredit)bf.Deserialize(f2);
+                        spisok.Insert(spisok.Count, persons);
+                    }
+                    dgv1.RowCount = dgv1.RowCount + 1;
+                    dgv1.RowCount = spisok.Count;
+
+                    for (i = 0; i < spisok.Count; i++)
+                    {
+                        for (j = 0; j < dgv1.ColumnCount; j++)
+                        {
+                            if (j == 0)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].nomer;
+                            }
+                            if (j == 1)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].FIO;
+                            }
+                            if (j == 2)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].Summa;
+                            }
+                            if (j == 3)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].Vid;
+                            }
+                            if (j == 4)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = spisok[i].Srok;
+                            }
+
+                        }
+                    }
+                }
+                tb1.Text = "";
+                tb2.Text = "";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка в создании карточки. Проверьте правильность введённых данных");
+            }
+        }
+
+        private void DeleteCard(ref List<Kredit> spisok, NumericUpDown nud3, ref DataGridView dgv1)
+        {
+            try
+            {
+                int j, i;
+                int k = Convert.ToInt32(nud3.Value);
+                spisok.RemoveAt(k - 1);
+
+                BinaryFormatter bf = new BinaryFormatter();
+                using (FileStream f1 = new FileStream("kredit.dat", FileMode.OpenOrCreate))
+                {
+                    foreach (Kredit t in spisok)
+                    {
+                        bf.Serialize(f1, t);
+                    }
+                }
+
+                dgv1.RowCount = dgv1.RowCount + 1;
+                dgv1.RowCount = spisok.Count;
+
+                for (i = 0; i < spisok.Count; i++)
+                {
+                    for (j = 0; j < dgv1.ColumnCount; j++)
+                    {
+                        if (j == 0)
+                        {
+                            dgv1.Rows[i].Cells[j].Value = spisok[i].nomer;
+                        }
+                        if (j == 1)
+                        {
+                            dgv1.Rows[i].Cells[j].Value = spisok[i].FIO;
+                        }
+                        if (j == 2)
+                        {
+                            dgv1.Rows[i].Cells[j].Value = spisok[i].Summa;
+                        }
+                        if (j == 3)
+                        {
+                            dgv1.Rows[i].Cells[j].Value = spisok[i].Vid;
+                        }
+                        if (j == 4)
+                        {
+                            dgv1.Rows[i].Cells[j].Value = spisok[i].Srok;
+                        }
+
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Ошибка при удалении. Эту запись нельзя удалить");
+            }
+        }
+
+        private void RedactCard(ref List<Kredit> spisok, ref DataGridView dgv1)
+        {
+            try
+            {
+                int i, j;
+
+                dgv1.RowCount = dgv1.RowCount + 1;
+                dgv1.RowCount = spisok.Count;
+
+                for (i = 0; i < dgv1.RowCount; i++)
+                {
+                    for (j = 0; j < dgv1.ColumnCount; j++)
+                    {
+                        if (j == 0)
+                        {
+                            spisok[i].nomer = Convert.ToInt32(dgv1.Rows[i].Cells[j].Value);
+                        }
+                        if (j == 1)
+                        {
+                            spisok[i].FIO = Convert.ToString(dgv1.Rows[i].Cells[j].Value);
+                        }
+                        if (j == 2)
+                        {
+                            spisok[i].Summa = Convert.ToInt32(dgv1.Rows[i].Cells[j].Value);
+                        }
+                        if (j == 3)
+                        {
+                            spisok[i].Vid = Convert.ToString(dgv1.Rows[i].Cells[j].Value);
+                        }
+                        if (j == 4)
+                        {
+                            spisok[i].Srok = Convert.ToInt32(dgv1.Rows[i].Cells[j].Value);
+                        }
+
+                    }
+                }
+
+                BinaryFormatter bf = new BinaryFormatter();
+                using (FileStream f1 = new FileStream("kredit.dat", FileMode.OpenOrCreate))
+                {
+                    foreach (Kredit t in spisok)
+                    {
+                        bf.Serialize(f1, t);
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Ошибка при добавлении. Неправильный ввод данных");
+            }
+        }
+
+        private void ShowVidKredita(ref List<Kredit> spisok, ref DataGridView dgv1, DomainUpDown dud2)
+        {
+            try
+            {
+                int i = 0, j, t = 0;
+
+                dgv1.RowCount = dgv1.RowCount + 1;
+
+                foreach (Kredit k in spisok)
+                {
+                    if (k.vid == dud2.Text)
+                    {
+                        t++;
+                    }
+                }
+
+                dgv1.RowCount = t;
+
+                foreach (Kredit k in spisok)
+                {
+                    if (k.vid == dud2.Text)
+                    {
+                        for (j = 0; j < dgv1.ColumnCount; j++)
+                        {
+                            if (j == 0)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = k.nomer;
+                            }
+                            if (j == 1)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = k.FIO;
+                            }
+                            if (j == 2)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = k.Summa;
+                            }
+                            if (j == 3)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = k.Vid;
+                            }
+                            if (j == 4)
+                            {
+                                dgv1.Rows[i].Cells[j].Value = k.Srok;
+                            }
+                        }
+                        i++;
+                    }
+                }
+                if (t == 0)
+                {
+                    MessageBox.Show("В базе данных нет клиентов с таким видом кредита");
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Ошибка!");
+            }
+        }
+
+        private void ShowMaxSum(ref List<Kredit> spisok, ref DataGridView dgv1)
+        {
+            int i, j, l, p;
+            bool ok = true;
+            double sum =0, sum1=0;
+            List<Kredit> spisok1 = new List<Kredit>();
+            List<Kredit> spisok2 = new List<Kredit>();
+
+            for (l = 0; l < spisok.Count; l++)
+            {
+                foreach (Kredit k in spisok)
+                {
+                    if (spisok[l].FIO == k.FIO)
+                    {
+                        spisok1.Insert(spisok1.Count, k);
+                        sum1 += k.Summa;
+                    }
+                }
+                if (sum1 > sum)
+                {
+                    spisok2.Clear();
+                    sum = sum1;
+                    sum1 = 0;
+                    for (p = 0; p < spisok1.Count; p++)
+                    {
+                        spisok2.Add(spisok1[p]);
+                    }
+                }
+                if (sum1 == sum && spisok1[0].FIO != spisok2[0].FIO)
+                {
+                    sum1 = 0;
+                    for (p = 0; p < spisok1.Count; p++)
+                    {
+                        spisok2.Add(spisok1[p]);
+                    }
+                }
+                spisok1.Clear();
+            }
+
+            if (ok == true)
+            {
+                dgv1.RowCount = dgv1.RowCount + 1;
+                dgv1.RowCount = spisok2.Count;
+                for (i = 0; i < spisok2.Count; i++)
+                {
+                    for (j = 0; j < dgv1.ColumnCount; j++)
+                    {
+                        if (j == 0)
+                        {
+                            dgv1.Rows[i].Cells[j].Value = spisok2[i].nomer;
+                        }
+                        if (j == 1)
+                        {
+                            dgv1.Rows[i].Cells[j].Value = spisok2[i].FIO;
+                        }
+                        if (j == 2)
+                        {
+                            dgv1.Rows[i].Cells[j].Value = spisok2[i].Summa;
+                        }
+                        if (j == 3)
+                        {
+                            dgv1.Rows[i].Cells[j].Value = spisok2[i].Vid;
+                        }
+                        if (j == 4)
+                        {
+                            dgv1.Rows[i].Cells[j].Value = spisok2[i].Srok;
+                        }
+
+                    }
+                }
+            }
+        }
+
+        private void Button1_Click(object sender, EventArgs e)
+        {
+            MakeBD(ref dataGridView1, textBox1, textBox2, domainUpDown1, numericUpDown2, numericUpDown1, ref spisok);
+            button4.Enabled = true;
+            button3.Enabled = true;
+            button2.Enabled = true;
+            button8.Enabled = true;
+            button9.Enabled = true;
+        }
+
+        private void Button4_Click(object sender, EventArgs e)
+        {
+            dataGridView1.ReadOnly = false;
+        }
+
+        private void Button3_Click(object sender, EventArgs e)
+        {
+            DeleteCard(ref spisok, numericUpDown3, ref dataGridView1);
+        }
+
+        private void Button5_Click(object sender, EventArgs e)
+        {
+            MakeBDNach(ref dataGridView1, textBox1, textBox2, domainUpDown1, numericUpDown2, numericUpDown1, ref spisok);
+            button4.Enabled = true;
+            button3.Enabled = true;
+            button2.Enabled = true;
+            button8.Enabled = true;
+            button9.Enabled = true;
+        }
+
+        private void Button6_Click(object sender, EventArgs e)
+        {
+            MakeBDKon(ref dataGridView1, textBox1, textBox2, domainUpDown1, numericUpDown2, numericUpDown1, ref spisok);
+            button4.Enabled = true;
+            button3.Enabled = true;
+            button2.Enabled = true;
+            button8.Enabled = true;
+            button9.Enabled = true;
+        }
+
+        private void Button2_Click_1(object sender, EventArgs e)
+        {
+            RedactCard(ref spisok, ref dataGridView1);
+            dataGridView1.ReadOnly = true;
+        }
+
+        private void Button8_Click(object sender, EventArgs e)
+        {
+            ShowVidKredita(ref spisok, ref dataGridView2, domainUpDown2);
+        }
+
+        private void Button9_Click(object sender, EventArgs e)
+        {
+            ShowMaxSum(ref spisok, ref dataGridView2);
+        }
+    }
+}
